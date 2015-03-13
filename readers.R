@@ -70,3 +70,7 @@ read.snps.plink.binary <- function(base_dir,
   
   list(X = X, d = data.m.nona, p = data.p)
 }
+
+read.phenotype.ordering <- function(base_dir, file_name = "fam-col-order.txt") {
+  strsplit(readLines(file.path(base_dir, file_name)), " ", fixed = TRUE)[[1]]
+}

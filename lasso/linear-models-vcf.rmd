@@ -25,11 +25,11 @@ sign.bound <- 0.001
 emma.sample <- 100
 emma.bound <- 0.05
 
-file_pattern <- "S-2ndLine_bin"
+file_pattern <- "2ndLineNonInj_bin"
 scriptdir <- "D:\\work\\bio\\rlib"
-plink.files <- "D:\\work\\bio\\roma_13-march-2015"
+plink.files <- "D:\\work\\bio\\roma_13-march-2015\\dataset_9"
 phe.as.fam <- FALSE
-remove.dups <- TRUE
+remove.dups <- !FALSE
 
 source(file.path(scriptdir, "known-mutations.R"))
 source(file.path(scriptdir, "readers.R"))
@@ -42,8 +42,8 @@ source(file.path(scriptdir, "readers.R"))
 #  "R2-T1", "R2-T2", "R2-T3", "R2-T4",
 #  "R2-T5", "TOT-T1", "TOT-T2"
 #  )
-#pheno.desc <- c("EMB", "INH", "RIF", "PZA", "STM", "OFLO")
-pheno.desc <- c("OFLO")
+
+pheno.desc <- read.phenotype.ordering(plink.files)
 
 plink.data <- read.snps.plink.binary(plink.files, 
                                      file_pattern, 
@@ -84,7 +84,7 @@ for (i in 1:ncol(data.p)) {
   tM.summ <- summary(tM[,1])
   tM.noNA <- length(levels(tM[,1]))
   
-  if(all(tM.summ[1:tM.noNA] > 2)) {
+  if(all(tM.summ[1:tM.noNA] > 2) && tM.noNA > 1) {
     out <- c(out, knit_child('linear-models-tile.rmd'))
   }
 }

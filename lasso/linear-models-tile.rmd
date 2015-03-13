@@ -92,7 +92,7 @@ if(length(act.idx) > 0) {
   X.reduced <- X[,act.idx]
   fit.reduced <- cv.glmnet(X.reduced, y, family = "binomial", lambda = seq(1, 0, by = -0.02))
   Y.predicted <- predict(fit.reduced, X.reduced, s = fit.reduced$lambda.min)
-  sum((Y.predicted < 0) != y.r) / ifelse(length(Y.predicted), length(Y.predicted), 1)
+  sum(ifelse(Y.predicted < 0, y.r.min, y.r.max) != y.r) / ifelse(length(Y.predicted), length(Y.predicted), 1)
 }
 ```
 

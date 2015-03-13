@@ -1,0 +1,45 @@
+---
+title: "Gemma LMM Summary"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r, echo=FALSE}
+library(knitr)
+library(qqman)
+
+p.threshold <- 0.01
+p.maxsel <- 500
+p.adj.m <- c("bonferroni", "holm", "hochberg", "fdr", "BY")
+```
+
+The following considerations were used in this document:  
+1) Resuls are based on __centralized__ distance matrix only, because it generally shows better PVE and doesn't cheange the results on GWAS.  
+2) p-values for likelihood ratio test are used for reporting. Other tests are asymptotically equivalent to LRT.  
+3) The following methods used for p-values correction: `r p.adj.m`  
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
+
+b <- "D:\\work\\bio\\roma_13-march-2015\\gemma_out"
+dataset <- "Dataset_9-2ndLineNonInj_bin"
+b <- file.path(b, dataset)
+
+med.f <- function(base_dir, drug) {
+  file.path(base_dir, drug, sprintf("%s-lmm.c.assoc.txt", drug))
+}
+
+c.entr <- function(drug) list(d = drug, f = med.f(b, drug))
+
+dirs <- list.dirs(b, full.names = FALSE, recursive = FALSE)
+input <- lapply(dirs, c.entr)
+
+out <- NULL
+for (i in input) {
+  description <- i$d
+  path <- i$f
+  out <- c(out, knit_child('summary-tile.rmd'))
+}
+```
+
+`r paste(out, collapse='\n')`
