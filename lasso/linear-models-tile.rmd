@@ -1,0 +1,129 @@
+```{r echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+medicine <- colnames(tM)[1]
+
+clPheno <- merge(tM, data.m.nona, all = FALSE, by = "row.names")
+
+X <- as.matrix(clPheno[,3:ncol(clPheno)])
+y <- clPheno[,2]
+y.r <- as.integer(y)
+y.r.min <- min(y.r)
+y.r.max <- max(y.r)
+
+fit.regularized <- cv.glmnet(X, y, family = "binomial", alpha = 0.7, lambda = seq(1, 0, by = -0.02))
+lambda.best <- fit.regularized$lambda.min
+
+last.pos <- as.integer(colnames(X)[ncol(X)])
+
+calc.set.diff <- function(set1, set2, antisimmetric = FALSE) {
+  dist.matrix <- abs(outer(set1, set2, FUN = "-"))
+  components <- NULL
+  if(antisimmetric) {
+    components <- apply(dist.matrix, 1, min)
+  } else {
+    components <- c(apply(dist.matrix, 2, min), apply(dist.matrix, 1, min))
+  }
+  mean(components)
+}
+
+bound.foo <- function(data) {
+  ps.sorted <- sort(data)
+  ps.bound <- ps.sorted[min(length(ps.sorted), emma.sample)]
+  min(emma.bound, ps.bound)
+}
+```
+
+# '`r medicine`' Details
+
+## Known mutations (Relative to H37Rv)
+
+```{r, warning=FALSE}
+known.snps <- known.mutations[[medicine]]
+known.snps
+```
+
+## Elastic Net for Best Lambda
+
+Lambda that minimizes CV error
+
+```{r, warning=FALSE}
+best.pos <- which(fit.regularized$lambda == lambda.best)
+
+lambda.best
+```
+
+Corresponding error
+
+```{r, warning=FALSE}
+fit.regularized$cvm[best.pos]
+```
+
+Test error
+
+```{r, warning=FALSE}
+p <- predict(fit.regularized, X, s = lambda.best)[,1]
+sum(ifelse(p < 0, y.r.min, y.r.max) != y.r) / ifelse(length(p), length(p), 1)
+```
+
+Number of nonzero coefficients (all non-zero)
+
+```{r, warning=FALSE}
+fit.regularized$nzero[best.pos]
+```
+
+Nonzero coefficients*:
+
+```{r, results='asis', warning=FALSE}
+model.coef <- coef(fit.regularized, s = lambda.best)
+model.coef.nointerc <- model.coef[2:length(model.coef)]
+act.idx <- which(abs(model.coef.nointerc) > sign.bound)
+
+act.snps <- as.integer(colnames(X)[act.idx])
+act.coef <- model.coef.nointerc[act.idx]
+s.f <- data.frame(position = act.idx, bp = act.snps, coeficient = act.coef)
+
+write.csv(s.f, file = paste0(medicine, ".lm.csv"))
+kable(s.f)
+```
+
+Reduced model test error*
+
+```{r, warning=FALSE}
+if(length(act.idx) > 0) {
+  X.reduced <- X[,act.idx]
+  fit.reduced <- cv.glmnet(X.reduced, y, family = "binomial", lambda = seq(1, 0, by = -0.02))
+  Y.predicted <- predict(fit.reduced, X.reduced, s = fit.reduced$lambda.min)
+  sum((Y.predicted < 0) != y.r) / ifelse(length(Y.predicted), length(Y.predicted), 1)
+}
+```
+
+Average minimum distance between known mutations and discovered
+
+```{r, warning=FALSE}
+if(!is.null(known.snps)) {
+  calc.set.diff(known.snps, act.snps)
+}
+```
+
+* - all coefficients <= `r sign.bound` were filtered
+
+## Charts
+
+Known mutations (H37Rv):
+
+```{r, warning=FALSE}
+if(!is.null(known.snps)) {
+  plot(known.snps, rep(1, length(known.snps)), xlim = c(1, last.pos))
+}
+```
+
+Nonzero coefficients (LASSO):
+
+```{r, warning=FALSE}
+if(nrow(s.f) > 0) {
+  plot(s.f$bp, s.f$coeficient, 
+     xlim = c(1, last.pos), xlab = "SNP index", ylab = "coeficient")
+} else {
+  "Not Available"
+}
+```
+
