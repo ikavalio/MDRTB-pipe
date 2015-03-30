@@ -15,7 +15,6 @@ out.dir <- file.path(base, "moss_out", sprintf("%s-%s", dataset_name, file_patte
 
 if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
 
-phe.as.fam <- TRUE
 maf.thresh <- 0.01
 phe.as.fam <- FALSE
 remove.dups <- TRUE
