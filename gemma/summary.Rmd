@@ -9,6 +9,7 @@ output:
 library(knitr)
 library(qqman)
 
+rawout <- "output"
 p.threshold <- 0.01
 p.maxsel <- 500
 p.adj.m <- c("bonferroni", "holm", "hochberg", "fdr", "BY")
@@ -23,6 +24,9 @@ The following considerations were used in this document:
 
 b <- "D:\\work\\bio\\roma_13-march-2015\\gemma_out"
 dataset <- "Dataset_9-2ndLineNonInj_bin"
+rawout <- file.path(rawout, dataset)
+
+if(!file.exists(rawout)) dir.create(rawout, recursive = TRUE)
 b <- file.path(b, dataset)
 
 med.f <- function(base_dir, drug) {
