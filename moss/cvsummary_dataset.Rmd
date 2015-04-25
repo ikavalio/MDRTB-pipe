@@ -1,0 +1,10 @@
+## Dataset: '`r basename(dataset.dir)`' prediction accuracy summary
+
+```{r include=FALSE, message=FALSE}
+out.drugs <- NULL
+for(drug.dir in list.files(dataset.dir, full.names = TRUE)) {
+  out.drugs <- c(out.drugs, knit_child("cvsummary_drug.Rmd"))
+}
+```
+
+`r paste(out.drugs, collapse='\n')`

@@ -29,15 +29,6 @@ moss.cv.k <- 5
 
 source(file.path(scriptdir, "readers.R"))
 
-#pheno.desc <- c(
-#  "EMB", "INH", "RIF", "RIFP", 
-#  "PZA", "STM", "CYCL", "ETH", 
-#  "PARA", "AMIK", "CAPR", "KANA", 
-#  "OFLO", "R1-T1", "R1-T2", "R1-T3", 
-#  "R2-T1", "R2-T2", "R2-T3", "R2-T4",
-#  "R2-T5", "TOT-T1", "TOT-T2"
-#  )
-
 pheno.desc <- read.phenotype.ordering(plink.files)
 
 plink.data <- read.snps.plink.binary(plink.files, 

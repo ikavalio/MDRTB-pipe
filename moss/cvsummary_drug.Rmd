@@ -1,0 +1,25 @@
+### '`r basename(drug.dir)`'
+
+```{r include=FALSE, message=FALSE}
+cv.results.file <- Sys.glob(file.path(drug.dir, "*.cv.csv"))[1]
+cv.results <- read.table(cv.results.file, sep = ",", header = TRUE)
+cv.results['X'] <- NULL
+cv.ctable <- xtabs(prop ~ prediciton + actual, data = cv.results)
+
+# [i, j], i - prediction, j - actual
+tp <- cv.ctable['1', '1']
+fp <- cv.ctable['1', '0']
+fn <- cv.ctable['0', '1']
+tn <- cv.ctable['0', '0']
+    
+precission <- tp / (tp + fp) # real positives in all predicted positives
+sensitivity <- tp / (tp + fn) # discovered positives from actual positives
+```
+
+```{r results='asis', echo=FALSE}
+kable(cv.ctable)
+```
+
+Precission (actual positives in all predicted positives): `r precission`
+
+Sensitivity (predicted positives from actual positives): `r sensitivity`
