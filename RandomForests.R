@@ -37,11 +37,11 @@ plink.data <- read.snps.plink.binary(plink.files,
 SNPs.num <- plink.data$d
 data.p <- plink.data$p
 
-rf.vars <- min(rf.vars, ncol(SNPs.num))
-
 if(length(ignore_cols) > 0) {
   SNPs.num <- SNPs.num[,setdiff(colnames(SNPs.num), ignore_cols)]
 }
+
+rf.vars <- min(rf.vars, ncol(SNPs.num))
 
 for(i in 1:ncol(data.p)) {
   drug.test <- data.p[,i]
