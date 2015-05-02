@@ -6,7 +6,7 @@
 library(snpStats)
 library(randomForest)
 
-dataset_name <- "dataset_1"
+dataset_name <- "datasets/dataset_1"
 base <- "/home/anjenson/BioInformatics/"
 scriptdir <- "/home/anjenson/BioInformatics/MDRTB-pipe/"
 extra <- ""
@@ -51,16 +51,14 @@ for (window in 1:window_range) {
   if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
   
   for(i in 1:ncol(data.p)) {
-    tryCatch({
+    tryCatch({   
+      
       drug.test <- data.p[,i]
       rf.data <- SNPs.num[!is.na(drug.test),]
       drug.test <- factor(drug.test[!is.na(drug.test)])
-      drug <- colnames(data.p)[i]
+      drug <- colnames(data.p)[i]        
       
-      SNPs.num <- plink.data$d
-      data.p <- plink.data$p
-      
-      pairs.df <- find.resistance.pairs(SNPs.num, data.p[,drug], window, misses_border)
+      pairs.df <- find.resistance.pairs(rf.data, data.p[,drug], window, misses_border)
       
       if (nrow(pairs.df) == 0) {
         next
@@ -71,14 +69,14 @@ for (window in 1:window_range) {
       for (i in 1:nrow(pairs.df)) {
         snp1 <- as.character(pairs.df[i,1])
         snp2 <- as.character(pairs.df[i,2])
-        SNPs.num[,snp1] <- pair.vectors(SNPs.num[,snp1],SNPs.num[,snp2],data.p[,drug])
+        rf.data[,snp1] <- pair.vectors(rf.data[,snp1], rf.data[,snp2],data.p[,drug])
       }
       
       if(length(ignore_cols) > 0) {
-        SNPs.num <- SNPs.num[,setdiff(colnames(SNPs.num), ignore_cols)]
+        rf.data <- rf.data[,setdiff(colnames(rf.data), ignore_cols)]
       }
       
-      rf.vars <- min(rf.vars, ncol(SNPs.num))
+      rf.vars <- min(rf.vars, ncol(rf.data))
       
       res.rf <- randomForest(x = rf.data,
                              y = drug.test,
