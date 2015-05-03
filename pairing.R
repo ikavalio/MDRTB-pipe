@@ -86,18 +86,3 @@ pair.vectors <- function(snp_vec1, snp_vec2, phenotypes) {
   }
   return(result)
 }
-
-###########
-window <- 10
-misses_border <- 3
-medicine <- "RIF"
-
-pairs.df <- find.resistance.pairs(SNPs.num, data.p[,medicine], window, misses_border)
-
-ignore_cols <- c(ignore_cols, as.character(pairs.df[,2])) #ingore second column
-
-for (i in 1:nrow(pairs.df)) {
-  snp1 <- as.character(pairs.df[i,1])
-  snp2 <- as.character(pairs.df[i,2])
-  SNPs.num[,snp1] <- pair.vectors(SNPs.num[,snp1],SNPs.num[,snp2],data.p[,medicine])
-}
