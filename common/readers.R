@@ -1,3 +1,7 @@
+if(! "snpStats" %in% rownames(installed.packages())) {
+  source("http://bioconductor.org/biocLite.R")
+  biocLite(c("snpStats"))
+}
 
 library(snpStats)
 
@@ -12,6 +16,8 @@ library(snpStats)
 #' @param maf.threshold colums with 1s frequency < maf.threshold should not be considered
 #' @param na.strings array of strings considered as NA
 #' @param verbose show output
+#' @param use.cols vector of columnames to preserve or NULL (all will be used)
+#' @param ignore.cols vector of columnames to remove or NULL (none will be removed)
 #' @return R list where corresponding matrixes can be accessed as list$genotypes, list$fam, etc.
 
 read.snps.plink.binary <- function(base_dir, 
@@ -21,7 +27,9 @@ read.snps.plink.binary <- function(base_dir,
                                    remove.dups = FALSE, 
                                    maf.threshold = 0.01,
                                    na.strings = c("-9"),
-                                   verbose = TRUE) {
+                                   verbose = TRUE,
+                                   use.cols = if(exists("use_cols")) get("use_cols") else NULL,
+                                   ignore.cols = if(exists("ignore_cols")) get("use_cols") else NULL) {
   sample.data <- read.plink(
     file.path(base_dir, sprintf("%s.bed", name_pattern)),
     file.path(base_dir, sprintf("%s.bim", name_pattern)),
@@ -47,16 +55,11 @@ read.snps.plink.binary <- function(base_dir,
     SNPs <- SNPs.full
   }
   
+  SNPs <- filter.columns(SNPs, use.cols, ignore.cols)
   SNPs.num <- as(SNPs, "numeric") / 2
   
   if(remove.dups) {
-    SNPs.nodups <- t(SNPs.num)
-    SNPs.nodups <- t(SNPs.nodups[!duplicated(SNPs.nodups),])
-    if(verbose) {
-      cat(sprintf("%d duplicated columns were removed.\n", 
-                  ncol(SNPs.num) - ncol(SNPs.nodups)))
-    }
-    SNPs.num <- SNPs.nodups 
+    SNPs.num <- filter.dups(SNPs.num, verbose)
   }
   
   bnd <- ifelse(use.phe, 2, 5)
@@ -73,4 +76,22 @@ read.snps.plink.binary <- function(base_dir,
 
 read.phenotype.ordering <- function(base_dir, file_name = "fam-col-order.txt") {
   strsplit(readLines(file.path(base_dir, file_name)), " ", fixed = TRUE)[[1]]
+}
+
+filter.dups <- function(genotype, verbose) {
+  SNPs.nodups <- t(genotype)
+  SNPs.nodups <- t(SNPs.nodups[!duplicated(SNPs.nodups),])
+  if(verbose) {
+    cat(sprintf("%d duplicated columns were removed.\n", 
+                ncol(genotype) - ncol(SNPs.nodups)))
+  }
+  SNPs.nodups 
+}
+
+filter.columns <- function(genotype, use.cols, ignore.cols) {
+  snsp.names <- colnames(genotype)
+  cols.include <- if(is.null(use.cols)) snsp.names else use.cols
+  cols.filter <- ignore.cols
+  cols.include <- intersect(setdiff(cols.include, cols.filter), snsp.names) 
+  genotype[,cols.include]
 }

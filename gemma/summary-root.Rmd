@@ -1,0 +1,59 @@
+---
+title: "Gemma LMM Summary"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r echo=FALSE, include=FALSE}
+library(knitr)
+library(qqman)
+
+scriptdir <- "D:\\work\\bio\\rlib\\common"
+source(file.path(scriptdir, "config.R"))
+
+source(lib.reader)
+source(lib.summary)
+
+# override defaults
+remove.dups <- FALSE
+maf.thresh <- NA # let GEMMA calculate it for us
+
+pheno.pos <- "2"
+pheno.neg <- "1"
+
+p.threshold <- 0.01
+p.maxsel <- 100
+p.adj.m <- c("bonferroni", "holm", "hochberg", "fdr", "BY")
+```
+
+The following considerations were used in this document:  
+1) Resuls are based on __centralized__ distance matrix only, because it generally shows better PVE and doesn't cheange the results on GWAS.  
+2) p-values for likelihood ratio test are used for reporting. Other tests are asymptotically equivalent to LRT.  
+3) The following methods used for p-values correction: `r p.adj.m`  
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
+out <- NULL
+for (dataset.dir in func.filter.datadir(home.gemma)) {
+  dataset.basename <- basename(dataset.dir)
+  dataset.name <- sub("^(dataset_[.0-9]+).*", "\\1", dataset.basename)
+  plink.files <- file.path(base, dataset.name)
+  file_pattern <- func.plink.filename(plink.files)
+  
+  pheno.desc <- read.phenotype.ordering(plink.files)
+  
+  plink.data <- read.snps.plink.binary(plink.files, 
+                                       file_pattern, 
+                                       pheno.desc, 
+                                       use.phe = phe.as.fam, 
+                                       remove.dups = remove.dups,
+                                       maf.threshold = maf.thresh)
+  
+  X <- plink.data$X
+  data.m.nona <- plink.data$d
+  data.p <- plink.data$p
+  out <- c(out, knit_child('summary-dataset.rmd'))
+}
+```
+
+`r paste(out, collapse='\n')`

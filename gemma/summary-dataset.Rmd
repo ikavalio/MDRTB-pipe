@@ -1,0 +1,20 @@
+# Dataset: '`r basename(dataset.dir)`' prediction accuracy summary
+
+```{r include=FALSE, message=FALSE}
+summary.t <- NULL
+
+out.drugs <- NULL
+for(drug.dir in list.files(dataset.dir, full.names = TRUE)) {
+  drug.name <- basename(drug.dir)
+  drug.name <- sub("-nodup", "", drug.name)
+  y <- data.p[,drug.name]
+  
+  out.drugs <- c(out.drugs, knit_child("summary-drug.Rmd"))
+}
+```
+
+```{r results='asis', echo=FALSE}
+kable(summary.t)
+```
+
+`r paste(out.drugs, collapse='\n')`

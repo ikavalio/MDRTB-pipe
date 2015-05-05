@@ -1,0 +1,26 @@
+---
+output:
+  html_document:
+    toc: yes
+---
+
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(ggplot2)
+library(knitr)
+library(boot)
+library(raster)
+library(reshape2)
+
+
+### RMD PARAMS
+scriptdir <- "D:\\work\\bio\\rlib\\common"
+source(file.path(scriptdir, "config.R"))
+source(lib.reader)
+
+out <- NULL
+for(dataset.dir in raw.files) {
+  out <- c(out, knit_child("data-correlation-drug.Rmd"))
+}
+```
+
+`r paste(out, collapse='\n')`

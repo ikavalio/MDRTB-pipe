@@ -1,33 +1,27 @@
-#source("http://bioconductor.org/biocLite.R")
-#biocLite(c("snpStats"))
-library(snpStats)
 library(genMOSSplus)
 
+# Script execution can take a lot of time, so loop over all datasets is not used
+
+scriptdir <- "D:\\work\\bio\\rlib\\common"
+source(file.path(scriptdir, "config.R"))
+source(lib.reader)
+
 dataset_name <- "dataset_1"
-base <- "D:\\work\\bio\\roma_13-march-2015"
-scriptdir <- "D:\\work\\bio\\rlib"
-extra <- "-no-2155175"
-ignore_cols <- c()
+out.base <- home.moss
 
 plink.files <- file.path(base, dataset_name)
-file_pattern <- sub(".bed", "", list.files(plink.files, pattern = "*.bed")[1])
-out.dir <- file.path(base, "moss_out", sprintf("%s-%s", dataset_name, file_pattern))
-
-if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
-
-maf.thresh <- 0.01
-phe.as.fam <- FALSE
-remove.dups <- TRUE
+file_pattern <- func.plink.filename(plink.files)
+out.dir <- file.path(out.base, sprintf("%s-%s", dataset_name, file_pattern))
 
 moss.alpha <- 1
 moss.c <- 0.1
 moss.cPrime <- 1e-5 
 moss.q <- 0.1
-moss.replicas <- 3 # 4
+moss.replicas <- 3
 moss.vars <- 3
 moss.cv.k <- 5
 
-source(file.path(scriptdir, "readers.R"))
+if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
 
 pheno.desc <- read.phenotype.ordering(plink.files)
 

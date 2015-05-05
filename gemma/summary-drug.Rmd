@@ -1,0 +1,64 @@
+## '`r drug.name`' Details
+
+```{r echo=FALSE, include=FALSE}
+path <- Sys.glob(file.path(drug.dir, "*-lmm.c.assoc.txt"))[1]
+rawout <- drug.dir
+
+test.data <- read.csv(path,
+                      header=TRUE,
+                      sep="\t",
+                      check.names = FALSE,
+                      na.strings=c("NA"),
+                      stringsAsFactors = FALSE
+                      )
+
+test.data <- test.data[test.data$rs %in% colnames(X),]
+X.e <- X[!is.na(y),test.data$rs]
+y <- as.character(y[!is.na(y)])
+b <- test.data$beta
+pred <- ifelse(X.e %*% b < 0, pheno.pos, pheno.neg)[,1]
+
+summary.t <- update.classification.stats(summary.t, drug.name, pred, y)
+
+ps <- test.data$p_lrt
+ps.l <- length(ps)
+
+test.gwas <- data.frame(
+  SNP = test.data$rs,
+  CHR = as.integer(test.data$chr) + 1,
+  BP = as.integer(test.data$ps),
+  P = ps
+)
+
+test.gwas[test.gwas$P == 0,"P"] <- 1e-15
+
+test.gwas <- test.gwas[!is.na(test.gwas$P),]
+p.vals.s <- sort(ps)
+p.trs.pos <- min(length(p.vals.s), p.maxsel)
+p.trs.val <- min(p.vals.s[p.trs.pos], p.threshold)
+```
+
+__Manhattan Plot__
+
+```{r, warning=FALSE}
+manhattan(test.gwas, cex = .5)
+```
+
+__Q-Q Plot__
+
+```{r, warning=FALSE}
+qq(ps, main = "Q-Q plot of GWAS p-values")
+```
+
+__Significant mutations__
+```{r, warning=FALSE}
+result <- test.data[,c("ps", "allele1", "allele0", "af", "p_lrt")]
+for(m in p.adj.m) {
+  result[m] <- p.adjust(ps, m)
+  }
+rawout.file <- file.path(rawout, sprintf("%s.ps.csv", drug.name))
+write.csv(result, file = rawout.file)
+
+test.data.filtered <- result[ps <= p.trs.val,]
+kable(test.data.filtered, digits = 20)
+```

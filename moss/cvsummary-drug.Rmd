@@ -1,0 +1,9 @@
+
+```{r include=FALSE, message=FALSE}
+cv.results.file <- Sys.glob(file.path(drug.dir, "*.cv.csv"))[1]
+cv.results <- read.table(cv.results.file, sep = ",", header = TRUE)
+cv.results['X'] <- NULL
+cv.ctable <- xtabs(prop ~ actual + prediciton, data = cv.results)
+
+summary.table <- update.classification.table(summary.table, basename(drug.dir), cv.ctable, "0", "1")
+```

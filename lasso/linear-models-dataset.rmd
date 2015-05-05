@@ -1,0 +1,57 @@
+# Dataset: '`r basename(dataset.dir)`' LASSO summary
+
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+plink.files <- dataset.dir
+dataset_name <- basename(dataset.dir)
+file_pattern <- func.plink.filename(plink.files)
+
+out.dir <- file.path(out.base, sprintf("%s-%s", dataset_name, file_pattern))
+if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
+
+pheno.desc <- read.phenotype.ordering(plink.files)
+
+plink.data <- read.snps.plink.binary(plink.files, 
+                                     file_pattern, 
+                                     pheno.desc, 
+                                     use.phe = phe.as.fam, 
+                                     remove.dups = remove.dups,
+                                     maf.threshold = maf.thresh)
+
+X <- plink.data$X
+data.m.nona <- plink.data$d
+data.p <- plink.data$p
+
+summary.t <- NULL
+summary.t.red <- NULL
+```
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
+out <- NULL
+for (i in 1:ncol(data.p)) {
+  tM <- data.p[, i, drop = FALSE]
+  tM <- tM[!is.na(tM[,1]), 1, drop = F]
+  
+  # correct available factor values
+  tM[,1] <- as.factor(tM[, 1])
+  tM.summ <- summary(tM[,1])
+  tM.noNA <- length(levels(tM[,1]))
+  
+  if(all(tM.summ[1:tM.noNA] > 2) && tM.noNA > 1) {
+    out <- c(out, knit_child('linear-models-drug.rmd'))
+  }
+}
+```
+
+## Full model prediction accuracy
+
+```{r results='asis', echo=FALSE}
+kable(summary.t)
+```
+
+## Reduced model prediction accuracy 
+
+```{r results='asis',echo=FALSE}
+kable(summary.t.red)
+```
+
+`r paste(out, collapse='\n')`

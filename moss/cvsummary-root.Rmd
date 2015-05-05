@@ -1,0 +1,21 @@
+---
+title: "MOSS Prediction Summary"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r include=FALSE, message=FALSE}
+library(knitr)
+
+scriptdir <- "D:\\work\\bio\\rlib\\common"
+source(file.path(scriptdir, "config.R"))
+source(lib.summary)
+
+out.datasets <- NULL
+for(dataset.dir in func.filter.datadir(home.moss)) {
+  out.datasets <- c(out.datasets, knit_child("cvsummary-dataset.Rmd"))
+}
+```
+
+`r paste(out.datasets, collapse='\n')`

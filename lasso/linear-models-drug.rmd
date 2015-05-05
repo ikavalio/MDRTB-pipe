@@ -14,40 +14,8 @@ lambda.best <- fit.regularized$lambda.min
 
 last.pos <- as.integer(colnames(X)[ncol(X)])
 
-stat.appender <- function(where, predicted, actual) {
-  stopifnot(length(predicted) == length(actual))
-  ac.f <- factor(actual, levels = c("1", "2"))
-  pr.f <- factor(predicted, levels = c("1", "2"))
-  
-  stat <- table(ac.f, pr.f) # stat[i, j], i - actual, j - predicted
-  prec <- stat["2", "2"] / (stat["2", "2"] + stat["1", "2"])
-  recall <- stat["2", "2"] / (stat["2", "2"] + stat["2", "1"])
-  acc <- sum(predicted == actual) / length(predicted)
-  total <- length(actual)
-  
-  row <- list()
-  row[["drug"]] <- medicine
-  row[["1"]] <- sum(actual == "2")
-  row[["0"]] <- sum(actual == "1")
-  row[["1/1"]] <- stat["2", "2"] / total
-  row[["1/0"]] <- stat["2", "1"] / total
-  row[["0/1"]] <- stat["1", "2"] / total
-  row[["0/0"]] <- stat["1", "1"] / total
-  row[["precission"]] <- prec
-  row[["recall"]] <- recall
-  row[["f1"]] <- 2 * prec * recall / (prec + recall)
-  row[["accuracy"]] <- acc
-  
-  if(is.null(where)) {
-    res <- data.frame(row, check.names = FALSE, stringsAsFactors = FALSE)
-  } else {
-    res <- rbind(where, row)
-  }
-  res
-}
-
 p <- ifelse(predict(fit.regularized, X, s = lambda.best)[,1] < 0, y.r.min, y.r.max)
-summary.table <- stat.appender(summary.table, p, y.r)
+summary.t <- update.classification.stats(summary.t, medicine, p, y.r)
 
 model.coef <- coef(fit.regularized, s = lambda.best)
 model.coef.nointerc <- model.coef[2:length(model.coef)]
@@ -61,16 +29,16 @@ if(length(act.idx) > 0) {
   X.reduced <- X[,act.idx]
   fit.reduced <- cv.glmnet(X.reduced, y, family = "binomial", lambda = seq(1, 0, by = -0.02))
   Y.predicted <- predict(fit.reduced, X.reduced, s = fit.reduced$lambda.min)[,1]
-  summary.table.red <- stat.appender(summary.table.red, ifelse(Y.predicted < 0, y.r.min, y.r.max), y.r)
+  summary.t.red <- update.classification.stats(summary.t.red, medicine, ifelse(Y.predicted < 0, y.r.min, y.r.max), y.r)
 } else {
   # if there're no significant pedictors - always predict 1
-  summary.table.red <- stat.appender(summary.table.red, rep(1, length(y.r)), y.r)
+  summary.t.red <- update.classification.stats(summary.t.red, medicine, rep(1, length(y.r)), y.r)
 }
 ```
 
-# '`r medicine`' Details
+## '`r medicine`' Details
 
-## Elastic Net for Best Lambda
+### Elastic Net for Best Lambda
 
 Lambda that minimizes CV error
 
@@ -98,7 +66,7 @@ write.csv(s.f, file = file.path(out.dir, paste0(medicine, ".lm.csv")))
 kable(s.f)
 ```
 
-## Charts
+### Charts
 
 Nonzero coefficients (LASSO):
 

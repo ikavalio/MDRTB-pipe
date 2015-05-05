@@ -1,18 +1,13 @@
 library(data.table)
 
-dataset_name <- "dataset_1"
-base <- "D:\\work\\bio\\roma_13-march-2015"
-scriptdir <- "D:\\work\\bio\\rlib"
-ignore_cols <- c()
+scriptdir <- "D:\\work\\bio\\rlib\\common"
+source(file.path(scriptdir, "config.R"))
+source(lib.reader)
 
-maf.thresh <- 0.01
-phe.as.fam <- FALSE
-remove.dups <- TRUE
+dataset_name <- "dataset_1"
 
 plink.files <- file.path(base, dataset_name)
-file_pattern <- sub(".bed", "", list.files(plink.files, pattern = "*.bed")[1])
-
-source(file.path(scriptdir, "readers.R"))
+file_pattern <- func.plink.filename(plink.files)
 
 pheno.desc <- read.phenotype.ordering(plink.files)
 
