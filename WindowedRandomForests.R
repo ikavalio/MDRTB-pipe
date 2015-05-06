@@ -1,16 +1,13 @@
 # !!! 
 # Uncomment bioClite call when running for the first time
 # !!!
-#source("http://bioconductor.org/biocLite.R")
-#biocLite(c("snpStats"))
-library(snpStats)
 library(randomForest)
 
 source(file.path(scriptdir, "readers.R"))
 source(file.path(scriptdir, "pairing.R"))
 
 base <- "/home/anjenson/BioInformatics/"
-scriptdir <- "/home/anjenson/BioInformatics/MDRTB-pipe/"
+scriptdir <- "/home/anjenson/BioInformatics/MDRTB-pipe/common"
 extra <- ""
 ignore_cols <- c()
 

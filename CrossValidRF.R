@@ -1,10 +1,7 @@
-#source("http://bioconductor.org/biocLite.R")
-#biocLite(c("snpStats"))
-library(snpStats)
 library(randomForest)
 
 base <- "/home/anjenson/BioInformatics/"
-scriptdir <- "/home/anjenson/BioInformatics/MDRTB-pipe/"
+scriptdir <- "/home/anjenson/BioInformatics/MDRTB-pipe/common"
 extra <- ""
 ignore_cols <- c()
 
