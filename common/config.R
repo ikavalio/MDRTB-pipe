@@ -27,7 +27,7 @@ raw.files <- func.filter.datadir(base)
 
 # reader options
 phe.as.fam <- FALSE
-remove.dups <- !FALSE
+remove.dups <- TRUE
 maf.thresh <- 0.01
 ignore_cols <- NULL
 use_cols <- NULL

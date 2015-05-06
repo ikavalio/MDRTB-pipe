@@ -1,0 +1,14 @@
+## Dataset: '`r basename(dataset.dir)`' prediction accuracy summary
+
+```{r include=FALSE, message=FALSE}
+summary.t <- NULL
+
+out.drugs <- NULL
+for(drug.dir in list.files(dataset.dir, full.names = TRUE)) {
+  knit_child("frsummary-drug.Rmd")
+}
+```
+
+```{r results='asis', echo=FALSE}
+kable(summary.t)
+```
