@@ -5,8 +5,8 @@ summary.t <- NULL
 
 out.drugs <- NULL
 for(drug.dir in list.files(dataset.dir, full.names = TRUE)) {
-  drug.name <- basename(drug.dir)
-  drug.name <- sub("-nodup", "", drug.name)
+  drug.name.full <- basename(drug.dir)
+  drug.name <- sub("-nodup", "", drug.name.full)
   y <- data.p[,drug.name]
   
   out.drugs <- c(out.drugs, knit_child("summary-drug.Rmd"))

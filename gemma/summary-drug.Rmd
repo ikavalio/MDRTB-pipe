@@ -1,4 +1,4 @@
-## '`r drug.name`' Details
+## '`r drug.name.full`' Details
 
 ```{r echo=FALSE, include=FALSE}
 path <- Sys.glob(file.path(drug.dir, "*-lmm.c.assoc.txt"))[1]
@@ -18,7 +18,7 @@ y <- as.character(y[!is.na(y)])
 b <- test.data$beta
 pred <- ifelse(X.e %*% b < 0, pheno.pos, pheno.neg)[,1]
 
-summary.t <- update.classification.stats(summary.t, drug.name, pred, y)
+summary.t <- update.classification.stats(summary.t, drug.name.full, pred, y)
 
 ps <- test.data$p_lrt
 ps.l <- length(ps)
