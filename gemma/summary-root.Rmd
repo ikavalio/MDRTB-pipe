@@ -8,6 +8,7 @@ output:
 ```{r echo=FALSE, include=FALSE}
 library(knitr)
 library(qqman)
+library(ggplot2)
 
 scriptdir <- "D:\\work\\bio\\rlib\\common"
 source(file.path(scriptdir, "config.R"))

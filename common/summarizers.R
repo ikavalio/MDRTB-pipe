@@ -66,3 +66,23 @@ update.classification.table <- function(where, name, rtable, neg.value = "1", po
   }
   res
 }
+
+roc.create.data <- function(observed, predicted, pos.value = "2", neg.value = "1", thresholds = sort(predicted)) {
+  observed <- factor(observed, levels = c(neg.value, pos.value))
+  res <- sapply(thresholds, function(th) {
+    p <- ifelse(predicted < th, neg.value, pos.value)
+    p <- factor(p, levels = c(neg.value, pos.value))
+    stat <- table(observed, p)
+    tp <- stat[pos.value, pos.value]
+    fp <- stat[neg.value, pos.value]
+    fn <- stat[pos.value, neg.value]
+    tn <- stat[neg.value, neg.value]
+    tpr <- tp / (tp + fn)
+    fpr <- fp / (fp + tn)
+    
+    c(x = fpr, y = tpr)
+  })
+  d <- data.frame(t(res))
+  d <- d[order(d$x, d$y),]
+  d
+}

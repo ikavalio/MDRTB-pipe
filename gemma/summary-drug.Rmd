@@ -16,9 +16,11 @@ test.data <- test.data[test.data$rs %in% colnames(X),]
 X.e <- X[!is.na(y),test.data$rs]
 y <- as.character(y[!is.na(y)])
 b <- test.data$beta
-pred <- ifelse(X.e %*% b < 0, pheno.pos, pheno.neg)[,1]
+pred.raw <- -1 * X.e %*% b
+pred <- ifelse(pred.raw > 0, pheno.pos, pheno.neg)[,1]
 
 summary.t <- update.classification.stats(summary.t, drug.name.full, pred, y)
+roc <- roc.create.data(y, pred.raw)
 
 ps <- test.data$p_lrt
 ps.l <- length(ps)
@@ -36,6 +38,18 @@ test.gwas <- test.gwas[!is.na(test.gwas$P),]
 p.vals.s <- sort(ps)
 p.trs.pos <- min(length(p.vals.s), p.maxsel)
 p.trs.val <- min(p.vals.s[p.trs.pos], p.threshold)
+
+roc.print <- function(roc) {
+  ggplot(roc, aes(x = x, y = y)) + xlab("False positives rate") + ylab("True positives rate") +
+    geom_line() + geom_point() +
+    geom_line(data = data.frame(x = c(0, 1), y = c(0, 1)), aes(x, y, colour = "red")) + theme(legend.position="none")
+}
+```
+
+__ROC learning curve__
+
+```{r, warning=FALSE, echo=FALSE}
+roc.print(roc)
 ```
 
 __Manhattan Plot__
@@ -46,12 +60,13 @@ manhattan(test.gwas, cex = .5)
 
 __Q-Q Plot__
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, echo=FALSE}
 qq(ps, main = "Q-Q plot of GWAS p-values")
 ```
 
 __Significant mutations__
-```{r, warning=FALSE}
+
+```{r, warning=FALSE, echo=FALSE}
 result <- test.data[,c("ps", "allele1", "allele0", "af", "p_lrt")]
 for(m in p.adj.m) {
   result[m] <- p.adjust(ps, m)

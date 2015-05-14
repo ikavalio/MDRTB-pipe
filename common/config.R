@@ -18,6 +18,7 @@ lib.dir <- "D:\\work\\bio\\rlib\\common"
 # libs aliases
 lib.reader <- file.path(lib.dir, "readers.R")
 lib.summary <- file.path(lib.dir, "summarizers.R")
+lib.frn <- file.path(lib.dir, "frn.R")
 
 # where all raw input files are stored
 base <- file.path(root.dir, "raw")
