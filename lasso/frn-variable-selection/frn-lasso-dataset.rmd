@@ -1,0 +1,28 @@
+# Dataset: '`r dataset.name`' summary
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
+out.drug <- NULL
+
+plink.files <- file.path(base, dataset.id)
+file_pattern <- func.plink.filename(plink.files)
+
+pheno.desc <- read.phenotype.ordering(plink.files)
+
+plink.data <- read.snps.plink.binary(plink.files, 
+                                     file_pattern, 
+                                     pheno.desc, 
+                                     use.phe = phe.as.fam, 
+                                     remove.dups = remove.dups,
+                                     maf.threshold = maf.thresh)
+
+SNPs.num <- data.table(plink.data$d)
+data.p <- data.table(plink.data$p)
+snps.cor <- cor(SNPs.num)
+
+for (drug.file in list.files(dataset.dir.corr, full.names = TRUE)) {
+  drug.name <- sub("(\\w+)[.]lm[.]csv", "\\1", basename(drug.file))
+  out.drug <- c(out.drug, knit_child('frn-lasso-drug.rmd'))
+}
+```
+
+`r paste(out.drug, collapse='\n')`

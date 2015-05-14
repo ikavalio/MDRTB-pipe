@@ -1,0 +1,40 @@
+---
+output:
+  html_document:
+    toc: yes
+---
+
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(knitr)
+library(data.table)
+library(glmnet)
+library(ggplot2)
+library(Cairo)
+
+scriptdir <- "D:\\work\\bio\\rlib\\common"
+source(file.path(scriptdir, "config.R"))
+
+source(lib.reader)
+source(lib.summary)
+source(lib.frn)
+
+### RMD PARAMS
+out.base <- home.lasso
+sign.bound <- 0.001
+cor.threshold <- 0.8
+p.threshold <- 0.01
+s.pos <- "2"
+s.neg <- "1"
+### RMD PARAMS
+
+
+out <- NULL
+for(dataset.dir in func.filter.datadir(home.lasso)) {
+  dataset.name <- basename(dataset.dir)
+  dataset.id <- sub("^(dataset_[.0-9]+).*", "\\1", dataset.name)
+  dataset.dir.corr <- file.path(dataset.dir, paste0("raw", ifelse(remove.dups, "-nodup", "")))
+  out <- c(out, knit_child("frn-lasso-dataset.Rmd"))
+}
+```
+
+`r paste(out, collapse='\n')`

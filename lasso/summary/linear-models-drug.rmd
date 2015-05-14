@@ -14,8 +14,10 @@ lambda.best <- fit.regularized$lambda.min
 
 last.pos <- as.integer(colnames(X)[ncol(X)])
 
-p <- ifelse(predict(fit.regularized, X, s = lambda.best)[,1] < 0, y.r.min, y.r.max)
+p.raw <- predict(fit.regularized, X, s = lambda.best)[,1]
+p <- ifelse(p.raw < 0, y.r.min, y.r.max)
 summary.t <- update.classification.stats(summary.t, medicine, p, y.r)
+roc.full <- roc.create.data(y.r, p.raw)
 
 model.coef <- coef(fit.regularized, s = lambda.best)
 model.coef.nointerc <- model.coef[2:length(model.coef)]
@@ -30,9 +32,18 @@ if(length(act.idx) > 0) {
   fit.reduced <- cv.glmnet(X.reduced, y, family = "binomial", lambda = seq(1, 0, by = -0.02))
   Y.predicted <- predict(fit.reduced, X.reduced, s = fit.reduced$lambda.min)[,1]
   summary.t.red <- update.classification.stats(summary.t.red, medicine, ifelse(Y.predicted < 0, y.r.min, y.r.max), y.r)
+  roc.reduced <- roc.create.data(y.r, Y.predicted)
 } else {
   # if there're no significant pedictors - always predict 1
-  summary.t.red <- update.classification.stats(summary.t.red, medicine, rep(1, length(y.r)), y.r)
+  Y.predicted <- rep(1, length(y.r))
+  summary.t.red <- update.classification.stats(summary.t.red, medicine, Y.predicted, y.r)
+  roc.reduced <- roc.create.data(y.r, Y.predicted)
+}
+
+roc.print <- function(roc) {
+  ggplot(roc, aes(x = x, y = y)) + xlab("False positives rate") + ylab("True positives rate") +
+    geom_line() + geom_point() +
+    geom_line(data = data.frame(x = c(0, 1), y = c(0, 1)), aes(x, y, colour = "red")) + theme(legend.position="none")
 }
 ```
 
@@ -72,10 +83,22 @@ Nonzero coefficients (LASSO):
 
 ```{r, warning=FALSE, echo=FALSE}
 if(nrow(s.f) > 0) {
-  plot(s.f$bp, s.f$coeficient, 
-     xlim = c(1, last.pos), xlab = "SNP index", ylab = "coeficient")
+  ggplot(s.f, aes(x = bp, y = coeficient)) + geom_point() + 
+    xlab("SNP index") + ylab("coeficient") +
+    geom_line(data = data.frame(x = c(0,last.pos), y = c(0, 0)), aes(x, y, colour = "red")) + theme(legend.position="none")
 } else {
   "Not Available"
 }
 ```
 
+ROC curve for full model 
+
+```{r, warning=FALSE, echo=FALSE}
+roc.print(roc.full)
+```
+
+ROC curve for reduced model 
+
+```{r, warning=FALSE, echo=FALSE}
+roc.print(roc.reduced)
+```
