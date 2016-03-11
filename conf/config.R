@@ -18,5 +18,12 @@ config <- list(
     replicas = 3,
     vars = 3,
     cv_k = 10
+  ),
+  gemma = list(
+    pheno_pos = "2",
+    pheno_neg = "1",
+    p_threshold = 0.01,
+    p_maxsel = 100,
+    p_adj_m = c("bonferroni", "holm", "hochberg", "fdr", "BY")
   )
 )
