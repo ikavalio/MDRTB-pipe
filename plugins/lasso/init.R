@@ -1,4 +1,4 @@
-includer(c("glmnet"))
+includer("glmnet")
 
 plugin_do <- function(base_dir, out_dir) {
   res <- .prepare_data(base_dir)
