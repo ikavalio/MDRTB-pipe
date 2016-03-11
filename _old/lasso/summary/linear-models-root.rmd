@@ -20,11 +20,12 @@ source(lib.summary)
 ### RMD PARAMS
 out.base <- home.lasso
 sign.bound <- 0.001
+ignore_ds <- read.table("D:\\work\\bio\\Exclude_mutations.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
 ### RMD PARAMS
 
 
 out <- NULL
-for(dataset.dir in raw.files) {
+for (dataset.dir in raw.files) {
   out <- c(out, knit_child("linear-models-dataset.Rmd"))
 }
 ```

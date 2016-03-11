@@ -40,6 +40,7 @@ home.moss <- file.path(root.dir, "moss_out")
 home.corr <- file.path(root.dir, "correlation")
 home.rf <- file.path(root.dir, "rf_out")
 home.rbm <- file.path(root.dir, "rbm_out")
+home.frn <- file.path(root.dir, "frn_out")
 home.tmp <- "D:\\work\\bio\\tmp"
 
 # set output precission

@@ -1,0 +1,92 @@
+```{r echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+s <- data.table(read.table(drug.file, header = TRUE, stringsAsFactors = FALSE, sep = ","))
+s <- s[bp %in% colnames(SNPs.num)]
+s <- s[,c("bp", "coeficient"), with = FALSE]
+
+cols.missing <- setdiff(colnames(SNPs.num), s$bp)
+missing.tbl <- data.table(bp = cols.missing, coeficient = rep(0, length(cols.missing)))
+s <- rbind(s, missing.tbl)[order(as.numeric(bp))]
+
+stat.observed <- abs(s$coeficient) > 0
+stats.table <- data.table(mutations = s$bp, relevance = stat.observed)
+
+lambdas <- seq(0.05, 1, by = 0.05)
+ms <- c()
+arrf1 <- c()
+best.set <- NULL
+
+y <- data.p[,drug.name, with = FALSE]
+rows.valid <- !is.na(y[[1]])
+y <- factor(y[rows.valid][[1]], levels = c(s.neg, s.pos))
+y.table <- table(y)
+lasso.possible <- length(y.table) == 2 && all(y.table > 1)
+
+if (lasso.possible) {
+  for (lambda in lambdas) {
+    signif <- frn.find.significant(stats.table, snps.cor, lambda = lambda, corr.threshold = cor.threshold)
+    ms <- c(ms, length(signif))
+    
+    if (length(signif) > 0) {
+      X <- SNPs.num[, signif, with = FALSE]
+      X <- as.matrix(X[rows.valid])
+      
+      tryCatch({
+        fit.regularized <-
+          cv.glmnet(
+            X, y, family = "binomial", alpha = 0.7, lambda = seq(1, 0, by = -0.02)
+          )
+        lasso.lambda.best <- fit.regularized$lambda.min
+        p <-
+          factor(ifelse(
+            predict(fit.regularized, X, s = lasso.lambda.best)[,1] < 0, s.neg, s.pos
+          ), levels = c(s.neg, s.pos))
+        
+        result <- table(p, y)
+        tp <- result[s.pos, s.pos]
+        fp <- result[s.pos, s.neg]
+        fn <- result[s.neg, s.pos]
+        m1 <- tp / (tp + fp)
+        m2 <- tp / (tp + fn)
+        f1 <- 2 * m1 * m2 / (m1 + m2)
+        arrf1 <- c(arrf1, f1)
+      })
+      
+    } else {
+      arrf1 <- c(arrf1, 0)
+    }
+  }
+  edata <- data.frame(lambda = lambdas, f1 = arrf1, ms = ms)
+}
+```
+
+## '`r drug.name`' Details
+
+Significant SNPs over lambda
+
+```{r, warning=FALSE, echo=FALSE}
+if (lasso.possible) {
+  #ggplot(edata, aes(x = lambda, y = ms, colour = "SNPs")) + 
+  # geom_line() + geom_point() + ylab(label = "number of significant SNPs")
+  plot(edata$lambda, edata$ms, type = "l", 
+       main = "Зависимость числа значимых мутаций от величины λ", 
+       xlab = "Величина параметра λ",
+       ylab = "Число значимых мутаций",
+       lwd = 2 #, ylim = c(0, 60)
+       )
+}
+```
+
+F1 score over lambda
+
+```{r, warning=FALSE, echo=FALSE}
+if (lasso.possible) {
+  #ggplot(edata, aes(x = lambda, y = f1, colour = "f1")) + 
+  #  geom_line() + geom_point() + ylab(label = "F1 score")
+  plot(edata$lambda, edata$f1, type = "l",
+       main = "Зависимость f1-метрики от величины λ", 
+       xlab = "Величина параметра λ",
+       ylab = "Величина f1-метрики",
+       lwd = 2 #, ylim = c(0, 1)
+       )
+}
+```

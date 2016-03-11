@@ -3,10 +3,11 @@
 ```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
 plink.files <- dataset.dir
 dataset_name <- basename(dataset.dir)
+dataset_number <- sub("dataset_(.*)", "\\1", dataset_name)
 file_pattern <- func.plink.filename(plink.files)
 
 out.dir <- file.path(out.base, sprintf("%s-%s", dataset_name, file_pattern))
-if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
+if (!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
 
 pheno.desc <- read.phenotype.ordering(plink.files)
 
@@ -36,7 +37,7 @@ for (i in 1:ncol(data.p)) {
   tM.summ <- summary(tM[,1])
   tM.noNA <- length(levels(tM[,1]))
   
-  if(all(tM.summ[1:tM.noNA] > 2) && tM.noNA > 1) {
+  if (all(tM.summ[1:tM.noNA] > 2) && tM.noNA > 1) {
     out <- c(out, knit_child('linear-models-drug.rmd'))
   }
 }

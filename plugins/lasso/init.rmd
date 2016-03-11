@@ -1,0 +1,50 @@
+---
+output:
+  html_document:
+    toc: yes
+---
+
+# Elastic Net GWAS results
+
+```{r include=FALSE, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+source("init.R")
+includer("ggplot2")
+
+res <- .prepare_data(.input)
+summary_t <- NULL
+summary_t_red <- NULL
+drugs <- colnames(res$p)
+
+last.pos <- as.integer(colnames(res$d)[ncol(res$d)])
+```
+
+```{r include=FALSE, message=FALSE, warning=FALSE}
+out <- NULL
+for (i in 1:ncol(res$p)) {
+  drug <- drugs[i]
+  tM <- res$p[, i, drop = FALSE]
+  tM <- tM[!is.na(tM[,1]), 1, drop = FALSE]
+  
+  # correct available factor values
+  tM[,1] <- as.factor(tM[, 1])
+  tM.summ <- summary(tM[,1])
+  tM.noNA <- length(levels(tM[,1]))
+  
+  if (all(tM.summ[1:tM.noNA] > 2) && tM.noNA > 1)
+    out <- c(out, knit_child("drug.rmd"))
+}
+```
+
+## Full model prediction accuracy
+
+```{r results='asis', echo=FALSE}
+kable(summary_t)
+```
+
+## Reduced model prediction accuracy 
+
+```{r results='asis',echo=FALSE}
+kable(summary_t_red)
+```
+
+`r paste(out, collapse='\n')`

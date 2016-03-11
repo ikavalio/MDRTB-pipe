@@ -17,7 +17,7 @@ source(lib.reader)
 source(lib.summary)
 
 # override defaults
-remove.dups <- FALSE
+remove.dups <- TRUE
 maf.thresh <- NA # let GEMMA calculate it for us
 
 pheno.pos <- "2"

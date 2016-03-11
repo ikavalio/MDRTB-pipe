@@ -1,15 +1,21 @@
 ```{r echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
 medicine <- colnames(tM)[1]
+ignore_cols <- ignore_ds[(ignore_ds$Dataset == dataset_number) & (ignore_ds$Drug == medicine), "Position"]
 
 clPheno <- merge(tM, data.m.nona, all = FALSE, by = "row.names")
 
 X <- as.matrix(clPheno[,3:ncol(clPheno)])
+
+if (length(ignore_cols) > 0) {
+  X <- X[,!colnames(X) %in% ignore_cols]
+}
+
 y <- clPheno[,2]
 y.r <- as.integer(y)
 y.r.min <- min(y.r)
 y.r.max <- max(y.r)
 
-fit.regularized <- cv.glmnet(X, y, family = "binomial", alpha = 0.7, lambda = seq(1, 0, by = -0.02))
+fit.regularized <- cv.glmnet(X, y, family = "binomial", alpha = 0.7, lambda = seq(1, 0, by = -0.02), nfolds = length(y))
 lambda.best <- fit.regularized$lambda.min
 
 last.pos <- as.integer(colnames(X)[ncol(X)])
@@ -27,23 +33,31 @@ act.snps <- as.integer(colnames(X)[act.idx])
 act.coef <- model.coef.nointerc[act.idx]
 s.f <- data.frame(position = act.idx, bp = act.snps, coeficient = act.coef)
 
-if(length(act.idx) > 0) {
+if (length(act.idx) > 0) {
   X.reduced <- X[,act.idx]
-  fit.reduced <- cv.glmnet(X.reduced, y, family = "binomial", lambda = seq(1, 0, by = -0.02))
+  fit.reduced <- cv.glmnet(X.reduced, y, family = "binomial", lambda = seq(1, 0, by = -0.02), nfolds = length(y))
   Y.predicted <- predict(fit.reduced, X.reduced, s = fit.reduced$lambda.min)[,1]
   summary.t.red <- update.classification.stats(summary.t.red, medicine, ifelse(Y.predicted < 0, y.r.min, y.r.max), y.r)
   roc.reduced <- roc.create.data(y.r, Y.predicted)
+  
+  coef.reduced <- coef(fit.reduced, s = fit.reduced$lambda.min)
+  coef.reduced.nointerc <- coef.reduced[2:length(coef.reduced)]
+  act.idx.2 <- which(abs(coef.reduced.nointerc) > sign.bound)
+  act.snps.2 <- as.integer(colnames(X.reduced)[act.idx.2])
+  act.coef.2 <- coef.reduced.nointerc[act.idx.2]
+  s.f.2 <- data.frame(position = act.idx.2, bp = act.snps.2, coeficient = act.coef.2)
 } else {
   # if there're no significant pedictors - always predict 1
   Y.predicted <- rep(1, length(y.r))
   summary.t.red <- update.classification.stats(summary.t.red, medicine, Y.predicted, y.r)
   roc.reduced <- roc.create.data(y.r, Y.predicted)
+  s.f.2 <- data.frame(position = character(0), bp = character(0), coeficient = character(0))
 }
 
 roc.print <- function(roc) {
   ggplot(roc, aes(x = x, y = y)) + xlab("False positives rate") + ylab("True positives rate") +
     geom_line() + geom_point() +
-    geom_line(data = data.frame(x = c(0, 1), y = c(0, 1)), aes(x, y, colour = "red")) + theme(legend.position="none")
+    geom_line(data = data.frame(x = c(0, 1), y = c(0, 1)), aes(x, y, colour = "red")) + theme(legend.position = "none")
 }
 ```
 
@@ -74,6 +88,7 @@ Nonzero coefficients*:
 
 ```{r, results='asis', warning=FALSE, echo=FALSE}
 write.csv(s.f, file = file.path(out.dir, paste0(medicine, ".lm.csv")))
+write.csv(s.f.2, file = file.path(out.dir, paste0(medicine, ".lm2.csv")))
 kable(s.f)
 ```
 

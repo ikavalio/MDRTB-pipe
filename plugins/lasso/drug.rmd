@@ -1,0 +1,95 @@
+```{r echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+Xt <- merge(tM, res$d, all = FALSE, by = "row.names")
+X <- as.matrix(Xt[,3:ncol(Xt)])
+y <- Xt[,2]
+ares <- .analyze(
+  X, y, drug, summary_t, alpha = alpha, signif = signif_level
+)
+summary_t <- ares$summary
+roc_full <- ares$roc
+snps_full <- ares$stats
+lasso_stats <- ares$lasso.stats
+
+if (nrow(snps_full) > 0) {
+  ares_red <- .analyze(
+    X[, snps_full$position], y, drug, summary_t_red, alpha = alpha,
+    signif = signif_level
+  )
+  summary_t_red <- ares_red$summary
+  roc_reduced <- ares_red$roc
+  snps_reduced <- ares_red$stats
+} else {
+  y.r <- as.integer(y)
+  y.predicted <- rep(1, length(y.r))
+  summary_t_red <- update_classification_stats(
+    summary_t_red, drug, y.predicted, y.r
+  )
+  roc_reduced <- roc_create_data(y.r, y.predicted)
+  snps_reduced <- data.frame(
+    position = character(0),
+    bp = character(0), 
+    coeficient = character(0)
+  )
+}
+
+roc_print <- function(roc) {
+  ggplot(roc, aes(x = x, y = y)) + xlab("False positives rate") + ylab("True positives rate") +
+    geom_line() + geom_point() +
+    geom_line(data = data.frame(x = c(0, 1), y = c(0, 1)), aes(x, y, colour = "red")) + theme(legend.position = "none")
+}
+```
+
+## '`r drug`' Details
+
+### Elastic Net for Best Lambda
+
+Lambda that minimizes CV error
+
+```{r, warning=FALSE, echo=FALSE}
+lasso_stats$lambda
+```
+
+Corresponding CV error
+
+```{r, warning=FALSE, echo=FALSE}
+lasso_stats$cv.err
+```
+
+Number of nonzero coefficients (all non-zero)
+
+```{r, warning=FALSE,echo=FALSE}
+lasso_stats$nzero
+```
+
+Nonzero coefficients*:
+
+```{r, results='asis', warning=FALSE, echo=FALSE}
+kable(snps_full)
+```
+
+### Charts
+
+Nonzero coefficients (LASSO):
+
+```{r, warning=FALSE, echo=FALSE}
+if (nrow(snps_full) > 0) {
+  ggplot(snps_full, aes(x = bp, y = coeficient)) + geom_point() + 
+    xlab("SNP index") + ylab("coeficient") +
+    geom_line(data = data.frame(x = c(0,last.pos), y = c(0, 0)), aes(x, y, colour = "red")) + 
+    theme(legend.position = "none")
+} else {
+  "Not Available"
+}
+```
+
+ROC curve for full model 
+
+```{r, warning=FALSE, echo=FALSE}
+roc_print(roc_full)
+```
+
+ROC curve for reduced model 
+
+```{r, warning=FALSE, echo=FALSE}
+roc_print(roc_reduced)
+```
