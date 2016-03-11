@@ -15,3 +15,5 @@ vignettes/*.pdf
 .RData
 *.Rproj
 .Rproj.user
+
+_old

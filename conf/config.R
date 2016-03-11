@@ -25,5 +25,9 @@ config <- list(
     p_threshold = 0.01,
     p_maxsel = 100,
     p_adj_m = c("bonferroni", "holm", "hochberg", "fdr", "BY")
+  ),
+  randforests = list(
+    trees = 5000,
+    vars = 200
   )
 )
