@@ -41,50 +41,54 @@ tryCatch({
   cparams <- c(config$common, config[[.opt$plugin]])
   
   if (.opt$html) {
-    .markdownFile <- tempfile(
-      pattern = "temp",
-      tmpdir = tempdir(),
-      fileext = ".md"
-    )
-    .markdownFile <- normalizePath(
-      .markdownFile,
-      winslash = "/",
-      mustWork = FALSE
-    )
-    .opt$picsdir <- paste0(tempdir(), "/figure")
-    .picsdir <- normalizePath(.opt$picsdir, winslash = "/", mustWork = FALSE)
-    opts_chunk$set(
-      dev = "png", 
-      self.contained = TRUE, 
-      dpi = 96,
-      dev.args = list(type = "cairo"),
-      fig.path = sub("([^/])$", "\\1/", .picsdir)
-    )
-    .report <- normalizePath(
-      paste(.output, "result.html", sep = "/"), 
-      winslash = "/", 
-      mustWork = FALSE
-    )
-    .template <- normalizePath("init.rmd", winslash = "/", mustWork = TRUE)
-    tryCatch({
-      inject_args(cparams)
-      knit(.template, .markdownFile, quiet = TRUE)
-      markdownToHTML(
-        .markdownFile, 
-        output = .report,
-        options = .htmlOptions,
-        fragment.only = FALSE
+    if (file.exists("init.rmd")) {
+      .markdownFile <- tempfile(
+        pattern = "temp",
+        tmpdir = tempdir(),
+        fileext = ".md"
       )
-    }, finally = {
-      if (file.exists(.markdownFile)) {
-        echo("Remove intermediate markdown file: ", .markdownFile)
-        file.remove(.markdownFile)
-      }
-      if (file.exists(.picsdir)) {
-        echo("Remove pictures dir: ", .picsdir)
-        unlink(.picsdir, recursive = TRUE)
-      }
-    })
+      .markdownFile <- normalizePath(
+        .markdownFile,
+        winslash = "/",
+        mustWork = FALSE
+      )
+      .opt$picsdir <- paste0(tempdir(), "/figure")
+      .picsdir <- normalizePath(.opt$picsdir, winslash = "/", mustWork = FALSE)
+      opts_chunk$set(
+        dev = "png", 
+        self.contained = TRUE, 
+        dpi = 96,
+        dev.args = list(type = "cairo"),
+        fig.path = sub("([^/])$", "\\1/", .picsdir)
+      )
+      .report <- normalizePath(
+        paste(.output, "result.html", sep = "/"), 
+        winslash = "/", 
+        mustWork = FALSE
+      )
+      .template <- normalizePath("init.rmd", winslash = "/", mustWork = TRUE)
+      tryCatch({
+        inject_args(cparams)
+        knit(.template, .markdownFile, quiet = TRUE)
+        markdownToHTML(
+          .markdownFile, 
+          output = .report,
+          options = .htmlOptions,
+          fragment.only = FALSE
+        )
+      }, finally = {
+        if (file.exists(.markdownFile)) {
+          echo("Remove intermediate markdown file: ", .markdownFile)
+          file.remove(.markdownFile)
+        }
+        if (file.exists(.picsdir)) {
+          echo("Remove pictures dir: ", .picsdir)
+          unlink(.picsdir, recursive = TRUE)
+        }
+      })
+    } else {
+      echo("HTML mode is not supported for selected plugin")
+    }
   } else {
     source("init.R")
     if (exists("plugin_do")) {

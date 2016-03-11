@@ -29,3 +29,6 @@ For text based mode:
  - ${drug_name}.lm2.csv       # table with bp positions and significance levels of important mutations (for lasso#2 step)
  - summary.lm.csv             # prediction accuracy summary for lasso#1
  - summary.lm2.csv            # prediction accuracy summary for lasso#2
+
+For HTML mode:
+ HTML file with results.
