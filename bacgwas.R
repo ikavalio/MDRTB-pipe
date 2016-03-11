@@ -90,12 +90,16 @@ tryCatch({
       echo("HTML mode is not supported for selected plugin")
     }
   } else {
-    source("init.R")
-    if (exists("plugin_do")) {
-      inject_args(cparams)
-      plugin_do(.input, .output)
+    if (file.exists("init.R")) {
+      source("init.R")
+      if (exists("plugin_do")) {
+        inject_args(cparams)
+        plugin_do(.input, .output)
+      } else {
+        echo("Incorrect plugin: function plugin_do not defined!")
+      }
     } else {
-      echo("Incorrect plugin: function plugin_do not defined!")
+      echo("Text mode is not supported for selected plugin")
     }
   }
 }, finally = {
