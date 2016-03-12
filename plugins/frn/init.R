@@ -29,20 +29,21 @@ plugin_do <- function(base_dir, out_dir) {
   if (all(!is.na(type$files))) {
     for (file in type$files) {
       proc <- type$func(file, X)
+      common.ps <- intersect(colnames(X), proc$stats$mutations)
+      Xt <- X[, as.character(common.ps), with = FALSE]
+      
       if (!is.null(proc)) {
         ms <- c()
-        arrf1 <- c()
-        best.set <- NULL
-        
         y <- data.p[, proc$drug, with = FALSE]
         rows.valid <- !is.na(y[[1]])
         y <- factor(y[rows.valid][[1]], levels = c(s_neg, s_pos))
         y.table <- table(y)
         lasso.possible <- length(y.table) == 2 && all(y.table > 1)
-        snps_cor <- snps_cor[proc$stats$mutations, proc$stats$mutations]
+        mutations <- intersect(proc$stats$mutations, colnames(snps_cor))
+        snps_cor_t <- snps_cor[mutations, mutations]
         if (lasso.possible) {
           signif <- frn_find_significant(
-            proc$stats, snps_cor, lambda = lambda,
+            proc$stats, snps_cor_t, lambda = lambda,
             corr.threshold = cor_threshold
           )
           ms <- length(signif)
@@ -54,8 +55,8 @@ plugin_do <- function(base_dir, out_dir) {
             row.names = FALSE
           )
           
-          r <- if (length(signif) > 0) {
-            Xt <- X[, signif, with = FALSE]
+          r <- if (length(signif) > 1) {
+            Xt <- Xt[, signif, with = FALSE]
             Xt <- as.matrix(Xt[rows.valid])
             
             fit.regularized <- cv.glmnet(
@@ -101,7 +102,7 @@ plugin_do <- function(base_dir, out_dir) {
 
 .lasso <- function(file, X) {
   allowed_ms <- colnames(X)
-  drug <- sub(".*?/(\\w+)[.]lm[.]csv", "\\1", file)
+  drug <- sub(".*?(\\w+)[.]lm[.]csv", "\\1", file)
   s <- data.table(read.table(file, header = TRUE, stringsAsFactors = FALSE, sep = ","))
   if (length(setdiff(c("bp", "coeficient"), colnames(s))) == 0) {
     s <- s[as.character(bp) %in% allowed_ms]
@@ -119,9 +120,50 @@ plugin_do <- function(base_dir, out_dir) {
   }
 }
 
-.gemma <- function(file, X) {}
+.gemma <- function(file, X) {
+  allowed_ms <- colnames(X)
+  drug <- sub(".*?(\\w+)-lmm[.]c[.]assoc[.]txt", "\\1", file)
+  test.data <- read.csv(
+    file,
+    header = TRUE,
+    sep = "\t",
+    check.names = FALSE,
+    na.strings = c("NA"),
+    stringsAsFactors = FALSE
+  )
+  s <- test.data
+  
+  if (length(setdiff(c("ps", "p_lrt"), colnames(s))) == 0) {
+    common.ps <- intersect(allowed_ms, s$ps)
+    s <- s[s$ps %in% common.ps,]
+    stat.observed <- s$p_lrt < p_threshold
+    list(
+      drug = drug, 
+      stats = data.table(mutations = s$ps, relevance = stat.observed)
+    )
+  }
+}
 
-.moss  <- function(file, X) {}
+.moss  <- function(file, X) {
+  allowed_ms <- colnames(X)
+  drug <- sub(".*?(\\w+)[.]moss[.]probs[.]csv", "\\1", file)
+  s <- data.table(read.table(file, sep = ",", header = TRUE))
+  if (length(setdiff(c("variable", "postIncProb"), colnames(s))) == 0) {
+    s[, bp := sub("X(\\d+)", "\\1", variable)]
+    s <- s[bp %in% allowed_ms]
+    s <- s[,c("bp", "postIncProb"), with = FALSE]
+    
+    cols.missing <- setdiff(allowed_ms, s$bp)
+    missing.tbl <- data.table(bp = cols.missing, postIncProb = rep(0, length(cols.missing)))
+    s <- rbind(s, missing.tbl)[order(as.numeric(bp))]
+    
+    stat.observed <- s$postIncProb > 0
+    list(
+      drug = drug, 
+      stats = data.table(mutations = s$bp, relevance = stat.observed)
+    )
+  }
+}
 
 .rf    <- function(file, X) {}
 
