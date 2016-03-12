@@ -29,5 +29,8 @@ config <- list(
   randforests = list(
     trees = 5000,
     vars = 200
+  ),
+  frn = list(
+    corr_matrix = NULL
   )
 )

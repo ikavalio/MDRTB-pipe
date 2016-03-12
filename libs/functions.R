@@ -111,6 +111,20 @@ filter_columns <- function(genotype, use.cols, ignore.cols) {
   genotype[,cols.include]
 }
 
+prepare_data <- function(base_dir, phe = FALSE, 
+                         no_dups = TRUE, maf_thr = 0.01, ignore_cols = NULL) {
+  pheno_desc <- read_pheno_ordering(base_dir)
+  read_snps_plink_binary(
+    base_dir,
+    sub(".bed", "", list.files(base_dir, pattern = "*.bed")[1]), 
+    pheno_desc, 
+    use.phe = phe, 
+    remove.dups = no_dups,
+    maf.threshold = maf_thr,
+    ignore.cols = ignore_cols
+  )
+}
+
 #### SUMMARIZERS ####
 
 #' Update classification accuracy matrix with experiment results

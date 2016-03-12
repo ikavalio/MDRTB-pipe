@@ -1,7 +1,13 @@
 includer("randomForest")
 
 plugin_do <- function(base_dir, out_dir) {
-  res <- .prepare_data(base_dir)
+  res <- prepare_data(
+    base_dir, 
+    phe = phe_as_fam, 
+    no_dups = remove_dups, 
+    maf_thr = maf_thresh,
+    ignore_cols = ignore_cols
+  )
   X <- res$d
   vars <- min(vars, ncol(X))
   drugs <- colnames(res$p)
@@ -36,16 +42,4 @@ plugin_do <- function(base_dir, out_dir) {
       echo(sprintf("Bad phenotypes for drug %s\n", drug))
     }
   }
-}
-
-.prepare_data <- function(base_dir) {
-  pheno_desc <- read_pheno_ordering(base_dir)
-  read_snps_plink_binary(
-    base_dir,
-    sub(".bed", "", list.files(base_dir, pattern = "*.bed")[1]), 
-    pheno_desc, 
-    use.phe = phe_as_fam, 
-    remove.dups = remove_dups,
-    maf.threshold = maf_thresh
-  )
 }

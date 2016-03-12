@@ -10,7 +10,13 @@ output:
 source("init.R")
 includer("ggplot2")
 
-res <- .prepare_data(.input)
+res <- prepare_data(
+    .input, 
+    phe = phe_as_fam, 
+    no_dups = remove_dups, 
+    maf_thr = maf_thresh,
+    ignore_cols = ignore_cols
+  )
 summary_t <- NULL
 summary_t_red <- NULL
 drugs <- colnames(res$p)
