@@ -165,7 +165,25 @@ plugin_do <- function(base_dir, out_dir) {
   }
 }
 
-.rf    <- function(file, X) {}
+.rf <- function(file, X) {
+  allowed_ms <- colnames(X)
+  drug <- sub(".*?(\\w+)[.]rf[.]imp[.]csv", "\\1", file)
+  s <- data.table(read.table(file, header = TRUE, stringsAsFactors = FALSE, sep = ","))
+  if (length(setdiff(c("X", "MeanDecreaseGini"), colnames(s))) == 0) {
+    s <- s[as.character(X) %in% allowed_ms]
+    s <- s[,c("X", "MeanDecreaseGini"), with = FALSE]
+    
+    cols.missing <- setdiff(allowed_ms, s$X)
+    missing.tbl <- data.table(X = cols.missing, MeanDecreaseGini = rep(0, length(cols.missing)))
+    s <- rbind(s, missing.tbl)[order(as.numeric(X))]
+    
+    stat.observed <- abs(s$MeanDecreaseGini) > 1
+    list(
+      drug = drug, 
+      stats = data.table(mutations = s$X, relevance = stat.observed)
+    )
+  }
+}
 
 .detect_type <- function(base_dir) {
   lookup <- list(
