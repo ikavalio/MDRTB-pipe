@@ -1,4 +1,4 @@
 cd ..
-E:\soft\R-3.2.2\bin\x64\Rscript bacgwas.R --input D:\work\bio\workdir\raw\dataset_1 --output D:\work\bio\tmp --plugin randforests
+E:\soft\R-3.2.2\bin\x64\Rscript bacgwas.R --input D:\work\bio\workdir\raw\dataset_1 --output D:\work\bio\tmp\randforests --plugin randforests
 cd bin
 pause

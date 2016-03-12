@@ -1,4 +1,4 @@
 cd ..
-E:\soft\R-3.2.2\bin\x64\Rscript bacgwas.R --input D:\work\bio\workdir\raw\dataset_1 --output D:\work\bio\tmp --plugin moss
+E:\soft\R-3.2.2\bin\x64\Rscript bacgwas.R --input D:\work\bio\workdir\raw\dataset_1 --output D:\work\bio\tmp\moss --plugin moss
 cd bin
 pause
