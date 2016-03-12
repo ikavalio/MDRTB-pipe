@@ -31,6 +31,13 @@ config <- list(
     vars = 200
   ),
   frn = list(
-    corr_matrix = NULL
+    corr_matrix = NULL,
+    lambda = 0.7,
+    lasso_alpha = 0.7,
+    sign_bound = 0.001,
+    cor_threshold = 0.8,
+    p_threshold = 0.01,
+    s_pos = "2",
+    s_neg = "1"
   )
 )
